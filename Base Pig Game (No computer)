@@ -1,0 +1,54 @@
+// Single Player PIG Game (CodeHS Compatible)
+// Player tries to reach 100 points
+
+var totalScore = 0;
+
+function start(){
+    println("WELCOME TO PIG!");
+    println("Reach 100 points to win.");
+    println("If you roll a 1, you lose all points from that turn!");
+    println("");
+
+    playTurn();
+}
+
+function playTurn(){
+    println("Your total score: " + totalScore);
+
+    var turnTotal = 0;
+
+    while(true){
+        println("Turn score: " + turnTotal);
+        var choice = readLine("Roll or Hold? (r/h): ");
+
+        if(choice == "r"){
+            var roll = Randomizer.nextInt(1, 6);
+            println("You rolled a " + roll);
+
+            if(roll == 1){
+                println("You rolled a 1! Turn over, no points added.");
+                println("");
+                playTurn();
+                return;
+            }
+
+            turnTotal += roll;
+        }
+        else if(choice == "h"){
+            totalScore += turnTotal;
+            println("You hold. Your total score is now: " + totalScore);
+            println("");
+
+            if(totalScore >= 100){
+                println("YOU WIN! Final score: " + totalScore);
+                return;
+            }
+
+            playTurn();
+            return;
+        }
+        else{
+            println("Invalid choice. Enter 'r' or 'h'.");
+        }
+    }
+}
