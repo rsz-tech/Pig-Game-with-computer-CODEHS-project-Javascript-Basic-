@@ -1,0 +1,122 @@
+// PIG Dice Game for CodeHS with a Computer Player
+// Added feature: if player types "cancel", game immediately ends and page clears
+
+var playerTotal = 0;
+var computerTotal = 0;
+var turnTotal = 0;
+var isPlayerTurn = true;
+var TARGET_SCORE = 100;
+var gameActive = true;
+
+function start(){
+    println("WELCOME TO PIG! First to 100 wins.");
+    println("Type 'cancel' at ANY time to quit.");
+    println("You go first!");
+
+    gameLoop();
+}
+
+function rollDie(){
+    return Randomizer.nextInt(1,6);
+}
+
+function gameLoop(){
+    while(gameActive && playerTotal < TARGET_SCORE && computerTotal < TARGET_SCORE){
+        if(isPlayerTurn){
+            playerTurn();
+        } else {
+            computerTurn();
+        }
+    }
+
+    if(!gameActive){
+        clearConsole();
+        println("Game canceled.");
+        return;
+    }
+
+    if(playerTotal >= TARGET_SCORE){
+    
+     println("YOU WIN with " + playerTotal + " points!");
+    } else if(computerTotal >= TARGET_SCORE){
+        println("Computer wins with " + computerTotal + " points!");
+    }
+}
+
+function playerTurn(){
+    turnTotal = 0;
+    println("--- YOUR TURN ---");
+    println("Your Score: " + playerTotal);
+    println("Computer Score: " + computerTotal);
+
+    while(true){
+        var choice = readLine("Roll or Hold? (r/h): ");
+
+        if(choice == "cancel"){
+            gameActive = false;
+            return;
+        }
+
+        if(choice == "r"){
+            var roll = rollDie();
+            println("You rolled: " + roll);
+
+            if(roll == 1){
+                println("You rolled a 1! You lose your turn.");
+                turnTotal = 0;
+                isPlayerTurn = false;
+                return;
+            } else {
+                turnTotal += roll;
+                println("Turn Total: " + turnTotal);
+            }
+        } 
+        else if(choice == "h"){
+            playerTotal += turnTotal;
+            println("You hold. Total score: " + playerTotal + "");
+            isPlayerTurn = false;
+            return;
+        } 
+        else {
+            println("Invalid input. Type 'r', 'h', or 'cancel'.");
+        }
+
+        if(playerTotal + turnTotal >= TARGET_SCORE){
+            playerTotal += turnTotal;
+            return;
+        }
+    }
+}
+
+function computerTurn(){
+    turnTotal = 0;
+    println("--- COMPUTER TURN ---");
+    println("Computer Score: " + computerTotal);
+
+    while(true){
+        var roll = rollDie();
+        println("Computer rolled: " + roll);
+
+        if(roll == 1){
+            println("Computer rolled a 1! Turn over.");
+            turnTotal = 0;
+            isPlayerTurn = true;
+            return;
+        }
+
+        turnTotal += roll;
+
+        if(computerTotal + turnTotal >= TARGET_SCORE){
+            computerTotal += turnTotal;
+            return;
+        }
+
+        if(turnTotal >= 15){
+            println("Computer holds with " + turnTotal + " points.");
+            computerTotal += turnTotal;
+            println("Computer Total: " + computerTotal + "");
+            isPlayerTurn = true;
+            return;
+        }
+    }
+}
