@@ -1,0 +1,118 @@
+//IMPORTANT READ
+//IF YOU CANNOT EXIT BROWSER EMBEDDED PAGE SPAM R OR H UNTIL ONE PERSON GETS 100
+// PIG Dice Game for CodeHS with a Computer Player
+// Fully functional in CodeHS Console
+
+// RULES:
+// - First to 100 points wins
+// - On your turn, you can "roll" or "hold"
+// - If you roll a 1, you lose all points from this round and your turn ends
+// - If you hold, you bank the points and pass the turn
+// - Computer uses simple logic to play
+
+var playerTotal = 0;
+var computerTotal = 0;
+var turnTotal = 0;
+var isPlayerTurn = true;
+var TARGET_SCORE = 100;
+
+function start(){
+    println("WELCOME TO PIG! First to 100 wins.");
+    println("You go first!\n");
+    gameLoop();
+}
+
+function rollDie(){
+    return Randomizer.nextInt(1,6);
+}
+
+function gameLoop(){
+    while(playerTotal < TARGET_SCORE && computerTotal < TARGET_SCORE){
+        if(isPlayerTurn){
+            playerTurn();
+        } else {
+            computerTurn();
+        }
+    }
+
+    if(playerTotal >= TARGET_SCORE){
+        println("\nYOU WIN with " + playerTotal + " points!");
+    } else {
+        println("\nComputer wins with " + computerTotal + " points!");
+    }
+}
+
+function playerTurn(){
+    turnTotal = 0;
+    println("--- YOUR TURN ---");
+    println("Your Score: " + playerTotal);
+    println("Computer Score: " + computerTotal);
+
+    var choice = "";
+    while(true){
+        choice = readLine("Roll or Hold? (r/h): ");
+        if(choice == "r"){
+            var roll = rollDie();
+            println("You rolled: " + roll);
+
+            if(roll == 1){
+                println("You rolled a 1! You lose your turn.");
+                turnTotal = 0;
+                isPlayerTurn = false;
+                return;
+            } else {
+                turnTotal += roll;
+                println("Turn Total: " + turnTotal);
+            }
+        } else if(choice == "h"){
+            playerTotal += turnTotal;
+            println("You hold. Total score: " + playerTotal + "\n");
+            isPlayerTurn = false;
+            return;
+        } else {
+            println("Invalid input. Type 'r' or 'h'.");
+        }
+
+        if(playerTotal + turnTotal >= TARGET_SCORE){
+            playerTotal += turnTotal;
+            return;
+        }
+    }
+}
+
+function computerTurn(){
+    turnTotal = 0;
+    println("--- COMPUTER TURN ---");
+    println("Computer Score: " + computerTotal);
+
+    // Simple computer strategy:
+    // - Roll until turnTotal >= 15, then hold
+    // - Or stop if winning
+
+    while(true){
+        var roll = rollDie();
+        println("Computer rolled: " + roll);
+
+        if(roll == 1){
+            println("Computer rolled a 1! Turn over.\n");
+            turnTotal = 0;
+            isPlayerTurn = true;
+            return;
+        }
+
+        turnTotal += roll;
+
+        if(computerTotal + turnTotal >= TARGET_SCORE){
+            computerTotal += turnTotal;
+            return;
+        }
+
+        if(turnTotal >= 15){
+            println("Computer holds with " + turnTotal + " points.");
+            computerTotal += turnTotal;
+            println("Computer Total: " + computerTotal + "\n");
+            isPlayerTurn = true;
+            return;
+        }
+    }
+}
