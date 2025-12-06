@@ -1,0 +1,199 @@
+// Advanced PIG Dice Game for CodeHS with Computer Player
+// Includes: cancel command, improved AI, logs, animation, taunts,
+// streaks, scoreboard, double-or-nothing, difficulty modes, replay option.
+//Thank you for running my code :)
+var TARGET_SCORE = 100;
+var playerTotal;
+var computerTotal;
+var turnTotal;
+var isPlayerTurn;
+var gameActive;
+var longestTurn;
+var onesRolled;
+var winsPlayer = 0;
+var winsComputer = 0;
+var difficulty = "medium";
+
+function start(){
+    startGame();
+}
+
+function startGame(){
+    clearConsole();
+    println("WELCOME TO ADVANCED PIG!");
+    println("First to 100 wins. Type 'cancel' anytime to quit.");
+    println("");
+
+    difficulty = chooseDifficulty();
+
+    resetStats();
+    gameLoop();
+}
+
+function chooseDifficulty(){
+    while(true){
+        var d = readLine("Choose difficulty (easy / medium / hard): ");
+        if(d == "cancel"){ endGame(); return "medium"; }
+        if(d == "easy" || d == "medium" || d == "hard"){ return d; }
+        println("Invalid. Type easy, medium, hard, or cancel.");
+    }
+}
+
+function resetStats(){
+    playerTotal = 0;
+    computerTotal = 0;
+    turnTotal = 0;
+    isPlayerTurn = true;
+    gameActive = true;
+    longestTurn = 0;
+    onesRolled = 0;
+}
+
+function endGame(){
+    gameActive = false;
+    clearConsole();
+    println("Game canceled.");
+}
+
+function rollDie(){
+    return Randomizer.nextInt(1,6);
+}
+
+function gameLoop(){
+    while(gameActive && playerTotal < TARGET_SCORE && computerTotal < TARGET_SCORE){
+        printScoreboard();
+        if(isPlayerTurn){ playerTurn(); } else { computerTurn(); }
+    }
+
+    if(!gameActive){ return; }
+
+    if(playerTotal >= TARGET_SCORE){ winsPlayer++; println("YOU WIN!"); }
+    else { winsComputer++; println("Computer wins."); }
+
+    showStats();
+    askReplay();
+}
+
+function printScoreboard(){
+    println("----------------------");
+    println(" Player: " + playerTotal);
+    println(" Computer: " + computerTotal);
+    println(" Wins (P/C): " + winsPlayer + " / " + winsComputer);
+    println("----------------------");
+}
+
+function animateRoll(){
+    println("Rolling..."); println("."); println(".."); println("...");
+}
+
+function playerTurn(){
+    turnTotal = 0;
+    println("--- YOUR TURN ---");
+
+    while(true){
+        println("Turn Score: " + turnTotal);
+        var choice = readLine("Roll (r), Hold (h), or Double-or-Nothing (d): ");
+
+        if(choice == "cancel"){ endGame(); return; }
+
+        if(choice == "d"){ handleDoubleOrNothing(); if(!isPlayerTurn) return; continue; }
+
+        if(choice == "r"){
+            animateRoll();
+            var roll = rollDie();
+            println("You rolled: " + roll);
+            logRoll("Player", roll);
+
+            if(roll == 1){
+                println("*BUZZ* You rolled a 1! Turn over.");
+                onesRolled++;
+                turnTotal = 0;
+                isPlayerTurn = false;
+                return;
+            }
+            turnTotal += roll;
+        }
+        else if(choice == "h"){
+            playerTotal += turnTotal;
+            updateTurnRecord();
+            println("You hold at " + turnTotal + ".");
+            isPlayerTurn = false;
+            return;
+        }
+        else{
+            println("Invalid. Type r, h, d, or cancel.");
+        }
+
+        if(playerTotal + turnTotal >= TARGET_SCORE){
+            playerTotal += turnTotal;
+            return;
+        }
+    }
+}
+
+function handleDoubleOrNothing(){
+    println("Double-or-Nothing! 50% chance to double turn score, 50% lose it all!");
+    var chance = Randomizer.nextInt(1,2);
+    if(chance == 1){ println("SUCCESS! Turn score doubled!"); turnTotal *= 2; }
+    else{ println("FAILED! Turn score lost."); turnTotal = 0; isPlayerTurn = false; }
+}
+
+function computerTurn(){
+    turnTotal = 0;
+    println("--- COMPUTER TURN ---");
+
+    while(true){
+        animateRoll();
+        var roll = rollDie();
+        println("Computer rolled: " + roll);
+        logRoll("Computer", roll);
+
+        if(roll == 1){ println("Computer rolled a 1! Turn over."); onesRolled++; turnTotal = 0; isPlayerTurn = true; return; }
+
+        turnTotal += roll;
+
+        var limit = computeAILimit();
+        if(computerTotal + turnTotal >= TARGET_SCORE){ computerTotal += turnTotal; updateTurnRecord(); return; }
+        if(turnTotal >= limit){
+            println("Computer holds at " + turnTotal);
+            computerTotal += turnTotal;
+            updateTurnRecord();
+            randomTaunt();
+            isPlayerTurn = true;
+            return;
+        }
+    }
+}
+
+function computeAILimit(){
+    if(difficulty == "easy"){ return 10; }
+    if(difficulty == "medium"){ return 15; }
+    // Hard mode: dynamic
+    var diff = playerTotal - computerTotal;
+    if(diff > 20){ return 20; }
+    if(diff < -20){ return 10; }
+    return 15;
+}
+
+function logRoll(who, roll){ println(who + " rolled " + roll + " (Turn Total: " + turnTotal + ")"); }
+
+function randomTaunt(){
+    var t = Randomizer.nextInt(1,4);
+    if(t == 1){ println("Computer: I'm catching up..."); }
+    if(t == 2){ println("Computer: Tough luck!"); }
+    if(t == 3){ println("Computer: Getting close..."); }
+}
+
+function updateTurnRecord(){ if(turnTotal > longestTurn){ longestTurn = turnTotal; } }
+
+function showStats(){
+    println("--- GAME STATS ---");
+    println("Longest turn: " + longestTurn);
+    println("1's rolled: " + onesRolled);
+}
+
+function askReplay(){
+    var r = readLine("Play again? (y/n): ");
+    if(r == "y"){ startGame(); }
+    else{ println("Thanks for playing!"); }
+}
